@@ -1,0 +1,1598 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Panier Partage</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@500,700&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <style>
+    :root {
+      --color-bg: #f4f6fa;
+      --color-surface: rgba(255, 255, 255, 0.85);
+      --color-surface-soft: rgba(255, 255, 255, 0.6);
+      --color-text: #1a1b25;
+      --color-muted: #6e738c;
+      --color-primary: #6b4cff;
+      --color-primary-strong: #502ee6;
+      --color-urgent: #ff8c42;
+      --color-danger: #f23a63;
+      --color-border: rgba(107, 76, 255, 0.12);
+      --color-overlay: rgba(11, 12, 24, 0.65);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+      --shadow: 0 14px 34px rgba(107, 76, 255, 0.08), 0 4px 14px rgba(0, 0, 0, 0.04);
+      --shadow-soft: 0 8px 24px rgba(107, 76, 255, 0.06);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --header-height: 76px;
+      --tab-height: 80px;
+      --touch: 48px;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #0b0c16;
+      --color-surface: rgba(19, 21, 36, 0.85);
+      --color-surface-soft: rgba(26, 28, 47, 0.6);
+      --color-text: #f0f2f8;
+      --color-muted: #8e95b3;
+      --color-primary: #8a73ff;
+      --color-primary-strong: #7457f5;
+      --color-urgent: #ffa166;
+      --color-danger: #ff5e82;
+      --color-border: rgba(138, 115, 255, 0.15);
+      --color-overlay: rgba(0, 0, 0, 0.8);
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.4);
+      --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: "Satoshi", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 540px;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--color-primary) 15%, transparent), transparent 45%),
+        radial-gradient(circle at 90% 15%, color-mix(in srgb, #4cd0ff 15%, transparent), transparent 40%),
+        radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 50%),
+        var(--color-bg);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      height: var(--header-height);
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 14px;
+      background: color-mix(in srgb, var(--color-surface) 65%, transparent);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.03);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-family: "Cabinet Grotesk", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      font-size: 1.07rem;
+    }
+
+    .brand svg {
+      color: var(--color-primary);
+      flex: 0 0 auto;
+      filter: drop-shadow(0 4px 8px rgba(93, 95, 239, 0.3));
+    }
+
+    .counter-pill {
+      min-height: var(--touch);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0 12px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 26%, var(--color-surface)), color-mix(in srgb, var(--color-primary) 14%, var(--color-surface)));
+      color: var(--color-primary-strong);
+      border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+      transform-origin: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .counter-flip {
+      animation: counterFlip 300ms ease;
+    }
+
+    @keyframes counterFlip {
+      0% { transform: rotateX(0deg); }
+      49% { transform: rotateX(90deg); opacity: 0.7; }
+      100% { transform: rotateX(0deg); }
+    }
+
+    .icon-btn {
+      min-width: var(--touch);
+      min-height: var(--touch);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 88%, white), var(--color-surface-soft));
+      color: var(--color-text);
+      cursor: pointer;
+      box-shadow: var(--shadow-soft);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:active {
+      transform: scale(0.92);
+    }
+
+    .icon-btn:focus-visible,
+    .primary-btn:focus-visible,
+    .secondary-btn:focus-visible,
+    .danger-btn:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+      outline-offset: 2px;
+    }
+
+    main {
+      padding: 14px;
+      padding-bottom: calc(var(--tab-height) + 26px + var(--safe-bottom));
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    .pull-indicator {
+      text-align: center;
+      color: var(--color-muted);
+      font-size: 0.84rem;
+      margin-bottom: 10px;
+      transform: translateY(-12px);
+      opacity: 0;
+      transition: all 200ms ease;
+    }
+
+    .pull-indicator.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .view {
+      display: none;
+    }
+    .view.active {
+      display: block;
+      animation: viewEnter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes viewEnter {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-family: "Cabinet Grotesk", sans-serif;
+      font-size: 1.1rem;
+      margin: 8px 0 12px;
+      letter-spacing: 0.2px;
+    }
+
+    .list-manager {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .list-manager-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .list-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .list-card-btn {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--color-border);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 88%, #fff), var(--color-surface-soft));
+      border-radius: 14px;
+      min-height: var(--touch);
+      padding: 12px;
+      cursor: pointer;
+      color: var(--color-text);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .list-card-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(82, 94, 179, 0.15);
+    }
+
+    .list-card-btn:active {
+      transform: scale(0.96);
+    }
+
+    .list-card-btn.active {
+      border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+      background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+      box-shadow: 0 10px 22px rgba(74, 124, 89, 0.2);
+    }
+
+    .list-card-btn::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -55px;
+      top: -60px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+      pointer-events: none;
+    }
+
+    .list-card-title {
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .list-card-meta {
+      color: var(--color-muted);
+      font-size: 0.82rem;
+    }
+
+    .list-group {
+      margin-bottom: 14px;
+    }
+
+    .group-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-muted);
+      margin-bottom: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    ul[role="list"] {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .item-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+    }
+
+    .delete-rail {
+      position: absolute;
+      inset: 0;
+      background: var(--color-danger);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0 12px;
+      color: #fff;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    .item {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 95%, transparent), var(--color-surface));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px) saturate(150%);
+      -webkit-backdrop-filter: blur(12px) saturate(150%);
+      padding: 13px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      touch-action: pan-y;
+      transition: transform 220ms ease, opacity 220ms ease, max-height 240ms ease, margin 240ms ease, padding 240ms ease;
+    }
+
+    .item.deleting {
+      opacity: 0;
+      transform: scaleY(0.4);
+      max-height: 0;
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-width: 0;
+    }
+
+    .item.bought .item-name {
+      text-decoration: line-through;
+      opacity: 0.62;
+    }
+
+    .item.bought .item-meta {
+      opacity: 0.65;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      color: #fff;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      font-size: 0.83rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    .item-main {
+      min-width: 0;
+    }
+
+    .item-main.with-image {
+      display: grid;
+      grid-template-columns: 1fr 56px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .item-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--color-border);
+      cursor: zoom-in;
+    }
+
+    .item-name {
+      font-size: 1.04rem;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .item-meta {
+      margin-top: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--color-muted);
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+      border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-weight: 600;
+      color: var(--color-primary-strong);
+    }
+
+    .item-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    .small-btn {
+      min-height: 34px;
+      border-radius: 12px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-size: 0.78rem;
+      padding: 0 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .small-btn:active {
+      transform: scale(0.92);
+    }
+
+    .small-btn.buy {
+      background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 32%, var(--color-surface)), color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)));
+      border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+      color: var(--color-primary-strong);
+    }
+
+    .small-btn.undo {
+      background: linear-gradient(135deg, color-mix(in srgb, var(--color-urgent) 24%, var(--color-surface)), color-mix(in srgb, var(--color-urgent) 14%, var(--color-surface)));
+      border-color: color-mix(in srgb, var(--color-urgent) 30%, var(--color-border));
+    }
+
+    .collapse-head {
+      width: 100%;
+      margin-top: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      min-height: var(--touch);
+      padding: 0 12px;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--color-muted);
+    }
+
+    .collapse-content.hidden {
+      display: none;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 95%, transparent), var(--color-surface));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+    }
+
+    .add-toggle-wrap {
+      margin-bottom: 10px;
+    }
+
+    .add-form-panel.hidden {
+      display: none;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .danger-btn {
+      min-height: var(--touch);
+      border-radius: 14px;
+      border: 1px solid transparent;
+      padding: 0 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .primary-btn:active,
+    .secondary-btn:active,
+    .danger-btn:active {
+      transform: scale(0.96);
+    }
+
+    .primary-btn:hover {
+      box-shadow: 0 14px 28px rgba(93, 95, 239, 0.35);
+      transform: translateY(-1px);
+    }
+    .secondary-btn:hover,
+    .danger-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(93, 95, 239, 0.3);
+    }
+
+    .secondary-btn {
+      background: var(--color-surface-soft);
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .danger-btn {
+      background: color-mix(in srgb, var(--color-danger) 18%, var(--color-surface));
+      border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+      color: var(--color-danger);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--color-muted);
+      padding: 12px;
+    }
+
+    .empty-state svg {
+      width: 130px;
+      max-width: 50vw;
+      color: var(--color-primary);
+      opacity: 0.8;
+    }
+
+    .tabbar {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: min(540px, 100%);
+      padding: 8px 10px calc(8px + var(--safe-bottom));
+      background: color-mix(in srgb, var(--color-surface) 75%, transparent);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-top: 1px solid var(--color-border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      z-index: 26;
+    }
+
+    .tab-btn {
+      min-height: var(--touch);
+      border: none;
+      background: transparent;
+      border-radius: 12px;
+      color: var(--color-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:active {
+      transform: scale(0.92);
+    }
+
+    .tab-btn.active {
+      color: var(--color-primary-strong);
+      background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+      box-shadow: var(--shadow-soft);
+    }
+
+    form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--color-muted);
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: var(--touch);
+      border-radius: 13px;
+      border: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--color-surface-soft) 82%, white);
+      color: var(--color-text);
+      padding: 0 10px;
+      font-family: inherit;
+      font-size: 0.96rem;
+    }
+
+    .error {
+      min-height: 17px;
+      color: var(--color-danger);
+      font-size: 0.77rem;
+    }
+
+    .quick-suggestions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      min-height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: 0 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chip:active {
+      transform: scale(0.92);
+    }
+
+    .preview-image-wrap {
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .file-picker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: var(--touch);
+      border-radius: 13px;
+      border: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--color-surface-soft) 82%, white);
+      padding: 8px;
+    }
+
+    .file-input-hidden {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+
+    .file-picker-name {
+      color: var(--color-muted);
+      font-size: 0.86rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+
+    .share-link-box {
+      width: 100%;
+      background: var(--color-bg);
+      border: 1px dashed var(--color-border);
+      border-radius: 10px;
+      padding: 10px;
+      word-break: break-all;
+      font-size: 0.86rem;
+      color: var(--color-muted);
+      margin-bottom: 10px;
+    }
+
+    #qrcode {
+      min-height: 170px;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    #qrcode img,
+    #qrcode canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .modal.hidden,
+    .toast.hidden {
+      display: none;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: var(--color-overlay);
+      display: grid;
+      place-items: center;
+      z-index: 80;
+      padding: 14px;
+    }
+
+    .modal-card {
+      width: min(420px, 100%);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .modal-row {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .image-modal-card {
+      width: min(92vw, 520px);
+      background: var(--color-surface);
+      border-radius: 18px;
+      border: 1px solid var(--color-border);
+      padding: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .image-modal-card img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(var(--tab-height) + 20px + var(--safe-bottom));
+      width: min(500px, calc(100% - 20px));
+      display: grid;
+      gap: 8px;
+      z-index: 90;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      min-height: var(--touch);
+      border-radius: 12px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .toast.success {
+      border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+    }
+    .toast.error {
+      border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+      color: var(--color-danger);
+    }
+
+    .skeleton-card {
+      border-radius: var(--radius-lg);
+      height: 82px;
+      background: linear-gradient(90deg, rgba(180, 180, 180, 0.1) 25%, rgba(180, 180, 180, 0.24) 50%, rgba(180, 180, 180, 0.1) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes shimmer {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .new-item-pulse {
+      animation: newPulse 900ms ease;
+    }
+    @keyframes newPulse {
+      0% { box-shadow: 0 0 0 rgba(75, 130, 93, 0.5); }
+      45% { box-shadow: 0 0 0 8px rgba(75, 130, 93, 0.2); }
+      100% { box-shadow: var(--shadow); }
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 12px;
+      top: -10px;
+      pointer-events: none;
+      z-index: 75;
+      opacity: 0.9;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      to {
+        transform: translateY(115vh) rotate(620deg);
+        opacity: 0.8;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="sticky-header">
+      <div class="brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16l-1.3 11.2a2 2 0 0 1-2 1.8H7.3a2 2 0 0 1-2-1.8L4 7z" stroke="currentColor" stroke-width="1.8" />
+          <path d="M8.5 7V6a3.5 3.5 0 1 1 7 0v1" stroke="currentColor" stroke-width="1.8" />
+        </svg>
+        <span>FairCart</span>
+      </div>
+      <div class="counter-pill" id="counterBadge">0 restant</div>
+      <button class="icon-btn" id="themeToggle" aria-label="Basculer le mode sombre">
+        <i data-lucide="sun"></i>
+      </button>
+      <button class="icon-btn" id="headerShareBtn" aria-label="Partager la liste">
+        <i data-lucide="send"></i>
+      </button>
+    </header>
+
+    <main>
+      <div class="pull-indicator" id="pullIndicator">Relache pour actualiser</div>
+
+      <section id="view-list" class="view active">
+        <div class="panel list-manager">
+          <strong>Mes listes de courses</strong>
+          <div class="list-grid" id="shoppingListCards"></div>
+        </div>
+      </section>
+
+      <section id="view-add" class="view">
+        <div class="panel">
+          <h2 class="section-title">Gestion des listes</h2>
+          <div class="field">
+            <label for="manageListSelect">Liste active</label>
+            <select id="manageListSelect"></select>
+          </div>
+          <div class="list-manager-row">
+            <button class="danger-btn" id="deleteListBtn" type="button">Supprimer</button>
+            <button class="secondary-btn" id="renameListBtn" type="button">Renommer</button>
+            <button class="primary-btn" id="createListBtn" type="button">Nouvelle</button>
+          </div>
+        </div>
+        <div class="add-toggle-wrap">
+          <button class="primary-btn" id="openAddFormBtn" type="button">Ajouter un article</button>
+        </div>
+        <div class="panel add-form-panel hidden" id="addFormPanel">
+          <h2 class="section-title">Ajouter un article</h2>
+          <form id="addForm" novalidate>
+            <div class="field">
+              <label for="targetListSelect">Ajouter dans la liste</label>
+              <select id="targetListSelect" name="targetList"></select>
+            </div>
+            <div class="field">
+              <label for="nameInput">Nom de l'article *</label>
+              <input id="nameInput" name="name" required autocomplete="off" list="nameSuggestions" />
+              <datalist id="nameSuggestions"></datalist>
+              <div class="error" id="nameError"></div>
+            </div>
+            <div class="field">
+              <label for="qtyInput">Quantite</label>
+              <input id="qtyInput" name="qty" type="number" min="0.1" step="0.1" value="1" />
+              <div class="error" id="qtyError"></div>
+            </div>
+            <div class="field">
+              <label for="unitSelect">Unite</label>
+              <select id="unitSelect" name="unit"></select>
+            </div>
+            <div class="field">
+              <label for="categorySelect">Categorie</label>
+              <select id="categorySelect" name="category"></select>
+            </div>
+            <div class="field">
+              <label for="addedByInput">Ajoute par</label>
+              <input id="addedByInput" name="addedBy" placeholder="Marie" />
+              <div class="error" id="addedByError"></div>
+            </div>
+            <div class="field">
+              <label for="imageInput">Image du produit (optionnel)</label>
+              <input id="imageInput" class="file-input-hidden" name="image" type="file" accept="image/*" />
+              <div class="file-picker">
+                <button id="pickImageBtn" type="button" class="secondary-btn">Choisir une image</button>
+                <span id="fileNameText" class="file-picker-name">Aucun fichier selectionne</span>
+              </div>
+              <div class="preview-image-wrap hidden" id="imagePreviewWrap">
+                <img id="imagePreview" class="preview-image" alt="Apercu du produit" />
+                <button class="secondary-btn" id="removeImageBtn" type="button">Retirer</button>
+              </div>
+            </div>
+            <button class="primary-btn" type="submit">Ajouter a la liste</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="view-detail" class="view">
+        <div class="panel">
+          <div class="cta-row" style="margin-top:0;">
+            <button class="secondary-btn" id="backToListsBtn" type="button">Retour aux listes</button>
+          </div>
+          <h2 class="section-title" id="detailTitle">Liste</h2>
+        </div>
+        <div id="listLoading" class="hidden" aria-hidden="true">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="detailListContent"></div>
+      </section>
+
+      <section id="view-share" class="view">
+        <div class="panel">
+          <h2 class="section-title">Partager cette liste</h2>
+          <div class="share-link-box" id="shareLinkText"></div>
+          <div class="cta-row">
+            <button class="primary-btn" id="copyLinkBtn">Copier le lien</button>
+            <button class="secondary-btn" id="newListBtn">Creer une nouvelle liste</button>
+          </div>
+          <div id="qrcode" aria-label="QR code du lien de partage"></div>
+        </div>
+
+        <div class="panel">
+          <h3 class="section-title">Mes habitudes</h3>
+          <div id="habitsList" class="quick-suggestions"></div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="Navigation principale">
+      <button class="tab-btn active" data-view="list" aria-label="Voir la liste">
+        <i data-lucide="layout-grid"></i><span>Listes</span>
+      </button>
+      <button class="tab-btn" data-view="add" aria-label="Ajouter un article">
+        <i data-lucide="package-plus"></i><span>Ajouter</span>
+      </button>
+      <button class="tab-btn" data-view="share" aria-label="Partager la liste">
+        <i data-lucide="qr-code"></i><span>Partager</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="modal hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h3 id="modalTitle">Confirmation</h3>
+      <p id="modalMessage"></p>
+      <div class="modal-row">
+        <button class="secondary-btn" id="modalCancel">Annuler</button>
+        <button class="danger-btn" id="modalConfirm">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="imageModal" role="dialog" aria-modal="true" aria-label="Image du produit">
+    <div class="image-modal-card">
+      <img id="imageModalPreview" alt="Agrandissement de l'image du produit" />
+      <div class="modal-row">
+        <button class="secondary-btn" id="imageModalClose">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (() => {
+      const CATEGORIES = {
+        produce: { label: "Fruits & legumes", emoji: "🌿" },
+        dairy: { label: "Produits laitiers", emoji: "🥣" },
+        meat: { label: "Viandes & poissons", emoji: "🍗" },
+        grocery: { label: "Epicerie", emoji: "🛒" },
+        hygiene: { label: "Hygiene", emoji: "🫧" },
+        frozen: { label: "Surgeles", emoji: "❄️" },
+        other: { label: "Autres", emoji: "✨" }
+      };
+      const UNITS = ["piece", "kg", "g", "L", "mL", "paquet", "bouteille", "botte"];
+      const APP = { listId: "", lists: [], activeListId: "", lastUpdated: Date.now() };
+      const memoryStore = new Map();
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const state = { view: "list", pendingModalAction: null, touch: null, pullStartY: null, pendingImage: "" };
+      const supabaseUrl = "https://skmbxzkfzkwvolfqkmw.supabase.co";
+      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrbWJ4emtmemtld3ZvbGZxa213Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NjU5MjUsImV4cCI6MjA5MzA0MTkyNX0.BGw7-eqcRK26hhBMH6WFAigJCbHkg4b3xtEDOCbFqTo";
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      let realtimeChannel = null;
+      let isUploading = false;
+
+      const el = {
+        detailListContent: document.getElementById("detailListContent"),
+        listLoading: document.getElementById("listLoading"),
+        counterBadge: document.getElementById("counterBadge"),
+        themeToggle: document.getElementById("themeToggle"),
+        headerShareBtn: document.getElementById("headerShareBtn"),
+        viewList: document.getElementById("view-list"),
+        viewAdd: document.getElementById("view-add"),
+        viewShare: document.getElementById("view-share"),
+        viewDetail: document.getElementById("view-detail"),
+        shoppingListCards: document.getElementById("shoppingListCards"),
+        manageListSelect: document.getElementById("manageListSelect"),
+        targetListSelect: document.getElementById("targetListSelect"),
+        backToListsBtn: document.getElementById("backToListsBtn"),
+        detailTitle: document.getElementById("detailTitle"),
+        openAddFormBtn: document.getElementById("openAddFormBtn"),
+        addFormPanel: document.getElementById("addFormPanel"),
+        createListBtn: document.getElementById("createListBtn"),
+        renameListBtn: document.getElementById("renameListBtn"),
+        deleteListBtn: document.getElementById("deleteListBtn"),
+        tabs: Array.from(document.querySelectorAll(".tab-btn")),
+        addForm: document.getElementById("addForm"),
+        nameInput: document.getElementById("nameInput"),
+        qtyInput: document.getElementById("qtyInput"),
+        unitSelect: document.getElementById("unitSelect"),
+        categorySelect: document.getElementById("categorySelect"),
+        addedByInput: document.getElementById("addedByInput"),
+        imageInput: document.getElementById("imageInput"),
+        pickImageBtn: document.getElementById("pickImageBtn"),
+        fileNameText: document.getElementById("fileNameText"),
+        imagePreviewWrap: document.getElementById("imagePreviewWrap"),
+        imagePreview: document.getElementById("imagePreview"),
+        removeImageBtn: document.getElementById("removeImageBtn"),
+        nameError: document.getElementById("nameError"),
+        qtyError: document.getElementById("qtyError"),
+        addedByError: document.getElementById("addedByError"),
+        datalist: document.getElementById("nameSuggestions"),
+        habitsList: document.getElementById("habitsList"),
+        shareLinkText: document.getElementById("shareLinkText"),
+        copyLinkBtn: document.getElementById("copyLinkBtn"),
+        newListBtn: document.getElementById("newListBtn"),
+        qrcode: document.getElementById("qrcode"),
+        confirmModal: document.getElementById("confirmModal"),
+        modalMessage: document.getElementById("modalMessage"),
+        modalCancel: document.getElementById("modalCancel"),
+        modalConfirm: document.getElementById("modalConfirm"),
+        imageModal: document.getElementById("imageModal"),
+        imageModalPreview: document.getElementById("imageModalPreview"),
+        imageModalClose: document.getElementById("imageModalClose"),
+        toastWrap: document.getElementById("toastWrap"),
+        pullIndicator: document.getElementById("pullIndicator")
+      };
+
+      const storage = {
+        get(k) {
+          try { const v = localStorage.getItem(k); return v === null ? memoryStore.get(k) || null : v; } catch (_) { return memoryStore.get(k) || null; }
+        },
+        set(k, v) { memoryStore.set(k, v); try { localStorage.setItem(k, v); } catch (_) {} }
+      };
+
+      function slug(len = 5) {
+        const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+        let s = "";
+        for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+        return s;
+      }
+      function generateId() { return `id-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
+      function normalizeName(v) { return String(v || "").trim().replace(/\s+/g, " "); }
+      function fmtDate(ts) { return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(ts)); }
+      function initials(name) { const p = String(name || "?").trim().split(/\s+/).filter(Boolean); return (p[0]?.[0] || "?").toUpperCase() + (p[1]?.[0] || "").toUpperCase(); }
+      function avatarColor(seed) { let h = 0; const t = String(seed || "x"); for (let i = 0; i < t.length; i++) h = t.charCodeAt(i) + ((h << 5) - h); return `hsl(${Math.abs(h) % 360} 55% 45%)`; }
+
+      function ensureHash() {
+        const current = (location.hash || "").replace("#", "").trim();
+        if (!current) { location.hash = "famille-" + slug(3) + "-" + slug(3); return; }
+        APP.listId = current;
+      }
+      function storageKey() { return "faircart:list:" + APP.listId; }
+      function ensureAtLeastOneList() {
+        if (!APP.lists.length) {
+          APP.lists = [{ id: "list-main", name: "Liste principale", items: [] }];
+          APP.activeListId = "list-main";
+        }
+        if (!APP.lists.some((l) => l.id === APP.activeListId)) APP.activeListId = APP.lists[0].id;
+      }
+      function getActiveList() { ensureAtLeastOneList(); return APP.lists.find((l) => l.id === APP.activeListId) || APP.lists[0]; }
+      function getActiveItems() { return getActiveList().items; }
+
+      async function load() {
+        el.listLoading.classList.remove("hidden");
+        const raw = storage.get(storageKey());
+        if (raw) {
+           try {
+              const data = JSON.parse(raw);
+              if (Array.isArray(data.lists)) { APP.lists = data.lists; APP.activeListId = data.activeListId || ""; APP.lastUpdated = data.lastUpdated || Date.now(); }
+           } catch (_) {}
+           renderAll();
+        }
+
+        try {
+          const { data, error } = await supabase.from('workspaces').select('data').eq('id', APP.listId).single();
+          if (data && data.data) {
+             const d = data.data;
+             APP.lists = d.lists || [];
+             APP.activeListId = d.activeListId || "";
+             APP.lastUpdated = d.lastUpdated || Date.now();
+          } else {
+             ensureAtLeastOneList();
+             await save(false);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        ensureAtLeastOneList();
+        renderAll();
+        el.listLoading.classList.add("hidden");
+
+        if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+        realtimeChannel = supabase.channel(`workspace-${APP.listId}`)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'workspaces', filter: `id=eq.${APP.listId}` }, payload => {
+             const newData = payload.new.data;
+             if (newData && newData.lastUpdated > APP.lastUpdated) {
+                APP.lists = newData.lists || [];
+                APP.activeListId = newData.activeListId || "";
+                APP.lastUpdated = newData.lastUpdated || Date.now();
+                renderAll();
+                toast("Panier mis a jour", "success");
+             }
+          })
+          .subscribe();
+      }
+      async function save(broadcast = true) {
+        APP.lastUpdated = Date.now();
+        const payload = { listId: APP.listId, lists: APP.lists, activeListId: APP.activeListId, lastUpdated: APP.lastUpdated };
+        storage.set(storageKey(), JSON.stringify(payload));
+        if (broadcast) {
+           await supabase.from('workspaces').upsert({ id: APP.listId, data: payload });
+        }
+      }
+
+      function setTheme(next) {
+        document.documentElement.dataset.theme = next;
+        storage.set("faircart:theme", next);
+        el.themeToggle.innerHTML = next === "dark" ? '<i data-lucide="moon"></i>' : '<i data-lucide="sun"></i>';
+        lucide.createIcons();
+      }
+      function initTheme() { const saved = storage.get("faircart:theme"); if (saved === "dark" || saved === "light") setTheme(saved); }
+
+      function toast(msg, type = "success") {
+        const node = document.createElement("div");
+        node.className = `toast ${type} animate__animated animate__fadeInUp`;
+        node.textContent = msg;
+        el.toastWrap.appendChild(node);
+        setTimeout(() => { node.classList.remove("animate__fadeInUp"); node.classList.add("animate__fadeOutDown"); setTimeout(() => node.remove(), 260); }, 3000);
+      }
+      function showModal(message, onConfirm) { state.pendingModalAction = onConfirm; el.modalMessage.textContent = message; el.confirmModal.classList.remove("hidden"); el.modalCancel.focus(); }
+      function closeModal() { state.pendingModalAction = null; el.confirmModal.classList.add("hidden"); }
+      function openImageModal(src) {
+        el.imageModalPreview.src = src;
+        el.imageModal.classList.remove("hidden");
+        el.imageModalClose.focus();
+      }
+      function closeImageModal() {
+        el.imageModal.classList.add("hidden");
+        el.imageModalPreview.removeAttribute("src");
+      }
+
+      function confetti() {
+        if (reducedMotion) return;
+        const colors = ["#4a7c59", "#f28e4b", "#7aa2f7", "#f2c94c", "#d17fbc"];
+        for (let i = 0; i < 45; i++) {
+          const c = document.createElement("div");
+          c.className = "confetti";
+          c.style.left = `${Math.random() * 100}vw`;
+          c.style.background = colors[Math.floor(Math.random() * colors.length)];
+          c.style.animationDuration = `${2.6 + Math.random() * 1.8}s`;
+          document.body.appendChild(c);
+          setTimeout(() => c.remove(), 4600);
+        }
+      }
+
+      function setCounter() {
+        const rest = state.view === "detail" ? getActiveItems().filter((i) => !i.bought).length : APP.lists.reduce((acc, list) => acc + list.items.filter((i) => !i.bought).length, 0);
+        el.counterBadge.textContent = `${rest} article${rest > 1 ? "s" : ""} restant${rest > 1 ? "s" : ""}`;
+        el.counterBadge.classList.remove("counter-flip");
+        void el.counterBadge.offsetWidth;
+        el.counterBadge.classList.add("counter-flip");
+      }
+      function frequentItems(limit = 10) {
+        const counts = {};
+        getActiveItems().forEach((it) => {
+          const key = normalizeName(it.name).toLowerCase();
+          if (!key) return;
+          counts[key] = (counts[key] || 0) + 1;
+        });
+        return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([name, count]) => ({ name, count }));
+      }
+      function prefillFromName(name) { el.nameInput.value = name; validateField("name"); toast("Article pre-rempli"); }
+      function renderSuggestions() {
+        const top = frequentItems();
+        el.habitsList.innerHTML = "";
+        el.datalist.innerHTML = "";
+        top.forEach((it) => {
+          const habit = document.createElement("button");
+          habit.type = "button";
+          habit.className = "chip";
+          habit.textContent = `${it.name} (${it.count})`;
+          habit.addEventListener("click", () => { prefillFromName(it.name); switchView("add"); });
+          el.habitsList.appendChild(habit);
+          const opt = document.createElement("option");
+          opt.value = it.name;
+          el.datalist.appendChild(opt);
+        });
+      }
+
+      function validateField(field) {
+        if (field === "name") {
+          const n = normalizeName(el.nameInput.value);
+          if (!n) { el.nameError.textContent = "Le nom est obligatoire."; return false; }
+          if (n.length < 2) { el.nameError.textContent = "2 caracteres minimum."; return false; }
+          el.nameError.textContent = ""; return true;
+        }
+        if (field === "qty") {
+          const q = Number(el.qtyInput.value);
+          if (!Number.isFinite(q) || q <= 0) { el.qtyError.textContent = "Quantite invalide."; return false; }
+          el.qtyError.textContent = ""; return true;
+        }
+        if (field === "addedBy") {
+          const who = normalizeName(el.addedByInput.value);
+          if (!who) { el.addedByError.textContent = "Indique qui ajoute cet article."; return false; }
+          el.addedByError.textContent = ""; return true;
+        }
+        return true;
+      }
+
+      function switchView(view) {
+        state.view = view;
+        const views = { list: el.viewList, add: el.viewAdd, share: el.viewShare, detail: el.viewDetail };
+        Object.entries(views).forEach(([k, node]) => node.classList.toggle("active", k === view));
+        el.tabs.forEach((b) => b.classList.toggle("active", b.dataset.view === (view === "detail" ? "list" : view)));
+        setCounter();
+        if (view !== "add") {
+          el.addFormPanel.classList.add("hidden");
+          el.openAddFormBtn.classList.remove("hidden");
+        }
+        if (view === "share") updateShareUI();
+      }
+
+      function renderListManager() {
+        el.shoppingListCards.innerHTML = APP.lists.map((list) => {
+          const remaining = list.items.filter((it) => !it.bought).length;
+          const total = list.items.length;
+          return `<button type="button" class="list-card-btn" data-list-id="${list.id}" aria-label="Ouvrir la liste ${list.name}"><div class="list-card-title">${list.name}</div><div class="list-card-meta">${remaining} restant(s) · ${total} article(s)</div></button>`;
+        }).join("");
+        const options = APP.lists.map((list) => `<option value="${list.id}">${list.name}</option>`).join("");
+        el.manageListSelect.innerHTML = options;
+        el.targetListSelect.innerHTML = options;
+        el.manageListSelect.value = APP.activeListId;
+        el.targetListSelect.value = APP.activeListId;
+      }
+      function setImagePreview(src) {
+        state.pendingImage = src || "";
+        if (state.pendingImage) {
+          el.imagePreview.src = state.pendingImage;
+          el.imagePreviewWrap.classList.remove("hidden");
+        } else {
+          el.imagePreview.removeAttribute("src");
+          el.imagePreviewWrap.classList.add("hidden");
+        }
+      }
+      function itemCard(it) {
+        const cat = CATEGORIES[it.category] || CATEGORIES.other;
+        return `<li class="item-wrap" data-wrap-id="${it.id}"><div class="delete-rail">Supprimer</div><article class="item ${it.bought ? "bought" : ""}" data-id="${it.id}"><div class="avatar" style="background:${avatarColor(it.addedBy)}">${initials(it.addedBy)}</div><div class="item-main ${it.image ? "with-image" : ""}"><div><p class="item-name">${it.name}</p><div class="item-meta"><span>${it.qty} ${it.unit}</span><span class="badge">${cat.emoji} ${cat.label}</span></div></div>${it.image ? `<img class="item-thumb" data-action="open-image" src="${it.image}" alt="Image du produit ${it.name}"/>` : ""}</div><div class="item-actions"><button class="small-btn ${it.bought ? "undo" : "buy"}" data-action="toggle-buy" data-id="${it.id}" aria-label="Marquer l'article">${it.bought ? "Annuler" : "✓ Achete"}</button></div></article></li>`;
+      }
+      function renderDetailList() {
+        const active = getActiveList();
+        const items = active.items;
+        el.detailTitle.textContent = active.name;
+        setCounter();
+        const pending = items.filter((i) => !i.bought);
+        const bought = items.filter((i) => i.bought);
+        const groups = {};
+        pending.forEach((it) => { const cat = it.category || "other"; if (!groups[cat]) groups[cat] = []; groups[cat].push(it); });
+
+        if (!items.length) {
+          el.detailListContent.innerHTML = `<div class="empty-state animate__animated animate__fadeIn"><svg viewBox="0 0 128 128" fill="none" aria-hidden="true"><path d="M20 36h88l-8 60a10 10 0 0 1-10 9H38a10 10 0 0 1-10-9l-8-60Z" stroke="currentColor" stroke-width="5"/><path d="M44 36V28a20 20 0 0 1 40 0v8" stroke="currentColor" stroke-width="5"/></svg><h3>${active.name}</h3><p>Cette liste est vide. Ajoute ton premier article depuis l'onglet Ajouter.</p></div>`;
+          return;
+        }
+
+        let html = "";
+        Object.keys(CATEGORIES).forEach((key) => { if (groups[key]?.length) html += `<section class="list-group"><div class="group-label">${CATEGORIES[key].emoji} ${CATEGORIES[key].label}</div><ul role="list">${groups[key].map(itemCard).join("")}</ul></section>`; });
+        if (!pending.length && bought.length) { html += `<div class="panel animate__animated animate__pulse"><h3>🎉 Courses terminees !</h3><p>Tout est deja dans le panier, bravo.</p><button id="emptyBoughtBtn" class="primary-btn">Vider le panier</button></div>`; confetti(); }
+        html += `<div class="cta-row"><button class="secondary-btn" id="clearBoughtBtn">Vider le panier</button><button class="danger-btn" id="clearAllBtn">Tout effacer</button></div>`;
+        el.detailListContent.innerHTML = html;
+        bindListActions();
+      }
+
+      function bindListActions() {
+        const clearBought = () => showModal("Supprimer uniquement les articles deja achetes ?", () => {
+          getActiveList().items = getActiveItems().filter((it) => !it.bought);
+          save(); renderAll(); toast("Panier achete vide");
+        });
+        document.getElementById("clearBoughtBtn")?.addEventListener("click", clearBought);
+        document.getElementById("emptyBoughtBtn")?.addEventListener("click", clearBought);
+        document.getElementById("clearAllBtn")?.addEventListener("click", () => showModal("Tout effacer dans cette liste ?", () => {
+          getActiveList().items = [];
+          save(); renderAll(); toast("Liste videe");
+        }));
+        el.detailListContent.querySelectorAll('[data-action="toggle-buy"]').forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const it = getActiveItems().find((x) => x.id === btn.dataset.id);
+            if (!it) return;
+            it.bought = !it.bought;
+            save(); renderDetailList();
+          });
+        });
+        el.detailListContent.querySelectorAll('[data-action="open-image"]').forEach((img) => {
+          img.addEventListener("click", () => openImageModal(img.getAttribute("src")));
+        });
+        attachSwipeHandlers();
+      }
+      function attachSwipeHandlers() {
+        el.detailListContent.querySelectorAll(".item").forEach((card) => {
+          card.addEventListener("touchstart", (e) => { const t = e.changedTouches[0]; state.touch = { id: card.dataset.id, x: t.clientX, y: t.clientY, dx: 0 }; }, { passive: true });
+          card.addEventListener("touchmove", (e) => {
+            if (!state.touch || state.touch.id !== card.dataset.id) return;
+            const t = e.changedTouches[0], dx = t.clientX - state.touch.x, dy = t.clientY - state.touch.y;
+            if (Math.abs(dx) > Math.abs(dy) && dx < 0) { state.touch.dx = dx; card.style.transform = `translateX(${Math.max(dx, -96)}px)`; }
+          }, { passive: true });
+          card.addEventListener("touchend", () => {
+            if (!state.touch || state.touch.id !== card.dataset.id) return;
+            if (state.touch.dx < -70) showModal("Supprimer cet article de la liste ?", () => removeItem(card.dataset.id));
+            card.style.transform = ""; state.touch = null;
+          });
+        });
+      }
+      function removeItem(id) {
+        const node = el.detailListContent.querySelector(`.item[data-id="${id}"]`);
+        if (node) node.classList.add("deleting");
+        setTimeout(() => { getActiveList().items = getActiveItems().filter((it) => it.id !== id); save(); renderAll(); toast("Article supprime"); }, reducedMotion ? 0 : 220);
+      }
+
+      function updateShareUI() {
+        const link = location.href;
+        el.shareLinkText.textContent = link;
+        el.qrcode.innerHTML = "";
+        new QRCode(el.qrcode, { text: link, width: 150, height: 150 });
+      }
+      function resetForm() {
+        el.nameInput.value = "";
+        el.qtyInput.value = "1";
+        el.unitSelect.value = "piece";
+        el.categorySelect.value = "produce";
+        el.imageInput.value = "";
+        el.fileNameText.textContent = "Aucun fichier selectionne";
+        setImagePreview("");
+      }
+      function fillSelects() {
+        el.unitSelect.innerHTML = UNITS.map((u) => `<option value="${u}">${u}</option>`).join("");
+        el.categorySelect.innerHTML = Object.entries(CATEGORIES).map(([k, v]) => `<option value="${k}">${v.emoji} ${v.label}</option>`).join("");
+      }
+      function renderAll() { renderListManager(); renderDetailList(); renderSuggestions(); updateShareUI(); }
+
+      function initPullToRefresh() {
+        document.addEventListener("touchstart", (e) => { if (window.scrollY === 0) state.pullStartY = e.changedTouches[0].clientY; }, { passive: true });
+        document.addEventListener("touchmove", (e) => { if (state.pullStartY == null) return; const d = e.changedTouches[0].clientY - state.pullStartY; if (d > 48 && window.scrollY === 0) el.pullIndicator.classList.add("show"); }, { passive: true });
+        document.addEventListener("touchend", (e) => {
+          if (state.pullStartY == null) return;
+          const d = e.changedTouches[0].clientY - state.pullStartY;
+          if (d > 64 && window.scrollY === 0) {
+            el.listLoading.classList.remove("hidden");
+            setTimeout(() => { renderAll(); el.listLoading.classList.add("hidden"); toast("Liste actualisee"); }, reducedMotion ? 1 : 500);
+          }
+          state.pullStartY = null; el.pullIndicator.classList.remove("show");
+        }, { passive: true });
+      }
+
+      function initEvents() {
+        el.themeToggle.addEventListener("click", () => { const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light"; setTheme(current === "dark" ? "light" : "dark"); });
+        el.headerShareBtn.addEventListener("click", () => switchView("share"));
+        el.tabs.forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
+        el.backToListsBtn.addEventListener("click", () => switchView("list"));
+        el.openAddFormBtn.addEventListener("click", () => {
+          el.addFormPanel.classList.remove("hidden");
+          el.openAddFormBtn.classList.add("hidden");
+          el.nameInput.focus();
+        });
+        el.shoppingListCards.addEventListener("click", (event) => {
+          const btn = event.target.closest("[data-list-id]");
+          if (!btn) return;
+          APP.activeListId = btn.dataset.listId;
+          save();
+          renderAll();
+          switchView("detail");
+        });
+        el.manageListSelect.addEventListener("change", () => {
+          APP.activeListId = el.manageListSelect.value;
+          el.targetListSelect.value = APP.activeListId;
+          save();
+          renderAll();
+        });
+        el.createListBtn.addEventListener("click", () => {
+          const name = normalizeName(window.prompt("Nom de la nouvelle liste :", "Courses semaine"));
+          if (!name) return;
+          const id = `list-${slug(4)}`;
+          APP.lists.unshift({ id, name, items: [] });
+          APP.activeListId = id;
+          save(); renderAll(); toast("Nouvelle liste creee");
+        });
+        el.renameListBtn.addEventListener("click", () => {
+          const list = getActiveList();
+          const name = normalizeName(window.prompt("Nouveau nom de la liste :", list.name));
+          if (!name) return;
+          list.name = name;
+          save(); renderAll(); toast("Liste renommee");
+        });
+        el.deleteListBtn.addEventListener("click", () => {
+          if (APP.lists.length <= 1) {
+            toast("Impossible de supprimer la derniere liste", "error");
+            return;
+          }
+          const active = getActiveList();
+          showModal(`Supprimer la liste "${active.name}" ?`, () => {
+            APP.lists = APP.lists.filter((list) => list.id !== active.id);
+            APP.activeListId = APP.lists[0].id;
+            save();
+            renderAll();
+            toast("Liste supprimee");
+          });
+        });
+
+        ["name", "qty", "addedBy"].forEach((f) => {
+          const node = f === "name" ? el.nameInput : f === "qty" ? el.qtyInput : el.addedByInput;
+          node.addEventListener("input", () => validateField(f));
+        });
+        el.pickImageBtn.addEventListener("click", () => el.imageInput.click());
+        el.imageInput.addEventListener("change", () => {
+          const file = el.imageInput.files?.[0];
+          if (!file) {
+            el.fileNameText.textContent = "Aucun fichier selectionne";
+            setImagePreview("");
+            return;
+          }
+          if (!file.type.startsWith("image/")) {
+            toast("Le fichier choisi n'est pas une image", "error");
+            el.imageInput.value = "";
+            el.fileNameText.textContent = "Aucun fichier selectionne";
+            setImagePreview("");
+            return;
+          }
+          el.fileNameText.textContent = file.name;
+          const reader = new FileReader();
+          reader.onload = () => setImagePreview(String(reader.result || ""));
+          reader.onerror = () => toast("Impossible de lire l'image", "error");
+          reader.readAsDataURL(file);
+        });
+        el.removeImageBtn.addEventListener("click", () => {
+          el.imageInput.value = "";
+          el.fileNameText.textContent = "Aucun fichier selectionne";
+          setImagePreview("");
+        });
+        el.addForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (isUploading) return;
+          const ok = validateField("name") & validateField("qty") & validateField("addedBy");
+          if (!ok) { toast("Verifie les champs en rouge", "error"); return; }
+          
+          let imageUrl = state.pendingImage || "";
+          const file = el.imageInput.files?.[0];
+          if (file) {
+             isUploading = true;
+             toast("Envoi de l'image...", "success");
+             const ext = file.name.split('.').pop();
+             const fileName = `${Date.now()}-${slug(6)}.${ext}`;
+             const { data, error } = await supabase.storage.from('images').upload(fileName, file, { cacheControl: '3600', upsert: false });
+             if (error) {
+                toast("Erreur d'envoi image", "error");
+             } else {
+                const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+                imageUrl = publicUrl;
+             }
+             isUploading = false;
+          }
+
+          const targetId = el.targetListSelect.value || APP.activeListId;
+          const targetList = APP.lists.find((list) => list.id === targetId) || getActiveList();
+          const item = { id: generateId(), name: normalizeName(el.nameInput.value), qty: Number(el.qtyInput.value), unit: el.unitSelect.value, category: el.categorySelect.value, addedBy: normalizeName(el.addedByInput.value), image: imageUrl, addedAt: Date.now(), bought: false };
+          targetList.items.unshift(item);
+          APP.activeListId = targetList.id;
+          storage.set("faircart:lastAddedBy", item.addedBy);
+          save(); renderAll(); resetForm(); switchView("detail"); toast("✓ Ajoute !");
+          const newNode = el.detailListContent.querySelector(`.item[data-id="${item.id}"]`);
+          if (newNode) { newNode.classList.add("new-item-pulse"); newNode.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" }); }
+        });
+
+        el.copyLinkBtn.addEventListener("click", async () => {
+          try { await navigator.clipboard.writeText(location.href); toast("Lien copie !"); } catch (_) { toast("Impossible de copier le lien", "error"); }
+        });
+        el.newListBtn.addEventListener("click", () => {
+          showModal("Creer un nouvel espace partage vide ?", () => {
+            location.hash = "famille-" + slug(3) + "-" + slug(3);
+            APP.listId = location.hash.slice(1);
+            APP.lists = [{ id: "list-main", name: "Liste principale", items: [] }];
+            APP.activeListId = "list-main";
+            save(); renderAll(); toast("Nouvel espace cree");
+          });
+        });
+
+        el.modalCancel.addEventListener("click", closeModal);
+        el.modalConfirm.addEventListener("click", () => { if (typeof state.pendingModalAction === "function") state.pendingModalAction(); closeModal(); });
+        el.imageModalClose.addEventListener("click", closeImageModal);
+        el.imageModal.addEventListener("click", (e) => {
+          if (e.target === el.imageModal) closeImageModal();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key !== "Escape") return;
+          if (!el.confirmModal.classList.contains("hidden")) closeModal();
+          if (!el.imageModal.classList.contains("hidden")) closeImageModal();
+        });
+        window.addEventListener("hashchange", () => { APP.listId = (location.hash || "").slice(1); load(); renderAll(); switchView("list"); });
+        window.addEventListener("storage", (event) => { if (event.key !== storageKey()) return; load(); renderAll(); });
+      }
+
+      function init() {
+        ensureHash();
+        APP.listId = location.hash.slice(1);
+        initTheme();
+        fillSelects();
+        const lastBy = storage.get("faircart:lastAddedBy");
+        if (lastBy) el.addedByInput.value = lastBy;
+        load();
+        initEvents();
+        initPullToRefresh();
+        renderAll();
+        lucide.createIcons();
+      }
+      init();
+    })();
+  </script>
+</body>
+</html>
